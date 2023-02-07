@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "ganache": "ganache-cli -b 1",
+    "migrate": "truffle migrate",
+    "compile": "truffle compile",
+    "test": "node script/test.js",
+    "node": "node script/network.js",
+    "mocha": "mocha --exit --recursive"
+  },
+  "devDependencies": {
+    "@openzeppelin/test-environment": "^0.1.4",
+    "@openzeppelin/test-helpers": "^0.5.5",
+    "@openzeppelin/truffle-upgrades": "^1.17.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3",
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "truffle": "^5.6.0",
+    "truffle-hdwallet-provider": "^1.0.17",
+    "truffle-plugin-verify": "^0.5.32"
+  }
+}
