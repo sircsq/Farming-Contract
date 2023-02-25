@@ -83,7 +83,6 @@ contract FarmFsctory is Allowlisted,Ownable,AccessControl,Pausable {
         return allFarm.length;
     }
 
-    // 设置管理员
     function setFarmAdmin(address _farmAdmin)  public onlyOwner {
         farmAdmin = _farmAdmin;
     }
@@ -127,13 +126,11 @@ contract FarmFsctory is Allowlisted,Ownable,AccessControl,Pausable {
         uint256 balance = IERC20(_rewardToken1Addr).balanceOf(msg.sender);
         require(balance >= _reward1, 'FarmFactory: balance < _reward1');
         IERC20(_rewardToken1Addr).transferFrom(msg.sender, address(this), _reward1);
-        TransferLib.approve(_rewardToken1Addr, farm, _reward1);
         TransferLib.safeTransfer(_rewardToken1Addr, farm, _reward1);
         if(_rewardTokenNumber > 1 ){
             uint256 balance2 = IERC20(_rewardToken2Addr).balanceOf(msg.sender);
             require(balance2 >= _reward2, 'FarmFactory: balance2 < _reward2');
             IERC20(_rewardToken2Addr).transferFrom(msg.sender, address(this), _reward2);
-            TransferLib.approve(_rewardToken2Addr, farm, _reward2);
             TransferLib.safeTransfer(_rewardToken2Addr, farm, _reward2);
         }
         getFarm[_stakeTokenAddr].push(farm);
