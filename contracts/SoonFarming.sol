@@ -146,8 +146,10 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (block.timestamp - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (block.timestamp - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userSake / totalStake);
-                _reward2 += (_totalReward2 * _userSake / totalStake);
+                if(totalStake > 0){
+                    _reward1 += (_totalReward1 * _userSake / totalStake);
+                    _reward2 += (_totalReward2 * _userSake / totalStake);
+                }
             }else if(aheadTime > 0 ){
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (aheadTime - _userTime) / blockTime;
@@ -160,8 +162,10 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (endTime - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (endTime - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userSake / totalStake);
-                _reward2 += (_totalReward2 * _userSake / totalStake);
+                if(totalStake > 0){
+                    _reward1 += (_totalReward1 * _userSake / totalStake);
+                    _reward2 += (_totalReward2 * _userSake / totalStake);
+                }
             }
         }
         require(_reward1 >= withdrawdReward1[_account], "SoonFarming:_reward1 >= withdrawdReward1");
