@@ -85,6 +85,7 @@ contract FarmFsctory is Allowlisted,Ownable,AccessControl,Pausable {
 
     function setFarmAdmin(address _farmAdmin)  public onlyOwner {
         farmAdmin = _farmAdmin;
+        _setupRole(DEFAULT_ADMIN_ROLE, _farmAdmin);
     }
 
     function getFarmAdmin() external view returns (address ){

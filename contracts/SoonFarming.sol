@@ -117,6 +117,13 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         emit StakeEvent(msg.sender,_aheadTime,block.timestamp);
     }
 
+
+  function test() public view virtual  returns (uint256 ) {
+      uint256 a = 2;
+       uint256 b = 1;
+        return (b-a);
+    }
+
     function name() public view virtual  returns (string memory) {
         return _name;
     }
@@ -139,10 +146,11 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
                 uint256  _userTimeLatter =  _userStakeLatter.time;
                 uint256  _totalReward1 = rewardPerMin1 * (_userTimeLatter - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (_userTimeLatter - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userAmount / _farmAount);
-                _reward2 += (_totalReward2 * _userAmount / _farmAount);
+                if(_farmAount > 0){
+                    _reward1 += (_totalReward1 * _userAmount / _farmAount);
+                    _reward2 += (_totalReward2 * _userAmount / _farmAount);
+                }
             }else if(block.timestamp <= endTime && aheadTime == 0){
-                // 活动进行中 (正常结束)
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (block.timestamp - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (block.timestamp - _userTime) / blockTime;
@@ -168,10 +176,12 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
                 }
             }
         }
-        require(_reward1 >= withdrawdReward1[_account], "SoonFarming:_reward1 >= withdrawdReward1");
-        require(_reward2 >= withdrawdReward2[_account], "SoonFarming:_reward2 >= withdrawdReward2");
-        _reward1 -= withdrawdReward1[_account];
-        _reward2 -= withdrawdReward2[_account];
+        if(_reward1 >= withdrawdReward1[_account]){
+            _reward1 -= withdrawdReward1[_account];
+        }
+        if(_reward2 >= withdrawdReward2[_account]){
+            _reward2 -= withdrawdReward2[_account];
+        }
         return(_reward1,_reward2);
     }
 
@@ -210,22 +220,19 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         require(userSake[_msgSender()] >= _amount, "SoonFarming:userSake >= unStake");
         require(_amount > 0, "SoonFarming:_amount > 0");
         (uint256 _reward1,uint256 _reward2) = _reward(_msgSender());
-        withdrawdReward1[msg.sender] = (withdrawdReward1[msg.sender] + _reward1);
-        withdrawdReward2[msg.sender] = (withdrawdReward2[msg.sender] + _reward2);
+        withdrawdReward1[msg.sender] += _reward1;
+        withdrawdReward2[msg.sender] += _reward2;
         userSake[msg.sender] =  (userSake[msg.sender] - _amount);
         totalStake  -= _amount;
         FarmStake memory _farmStake  = FarmStake(block.timestamp,totalStake);
         timeStake.push(_farmStake);
         FarmStake memory _userStake  = FarmStake(block.timestamp,userSake[msg.sender]);
         userTimeStake[msg.sender].push(_userStake);
-        TransferLib.approve(stakeToken, msg.sender, _amount);
         TransferLib.safeTransfer(stakeToken, msg.sender, _amount);
         if(_reward1 > 0 ){
-            TransferLib.approve(address(rewardToken1), msg.sender, _reward1);
             TransferLib.safeTransfer(address(rewardToken1), msg.sender, _reward1);
         }
         if(_reward2 > 0 ){
-            TransferLib.approve(address(rewardToken2), msg.sender, _reward2);
             TransferLib.safeTransfer(address(rewardToken2), msg.sender, _reward2);
         }
         emit UnStakeEvent(msg.sender,_amount,_reward1,_reward2,block.timestamp);
@@ -243,11 +250,9 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         withdrawdReward1[msg.sender] += _reward1;
         withdrawdReward2[msg.sender] += _reward2;
         if(_reward1 > 0 ){
-            TransferLib.approve(address(rewardToken1), msg.sender, _reward1);
             TransferLib.safeTransfer(address(rewardToken1), msg.sender, _reward1);
         }
         if(_reward2 > 0 ){
-            TransferLib.approve(address(rewardToken2), msg.sender, _reward2);
             TransferLib.safeTransfer(address(rewardToken2), msg.sender, _reward2);
         }
         emit ClaimEvent(msg.sender,_reward1,_reward2,block.timestamp);
@@ -256,7 +261,6 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
 
     function withdraw(address token, address account,uint256 amount) public payable lock {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "SoonFarming:permission denied !");
-        TransferLib.approve(token, account, amount);
         TransferLib.safeTransfer(token, account, amount);
         emit WithdrawEvent(token,account,amount);
     }
@@ -283,32 +287,42 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
                 uint256  _userTimeLatter =  _userStakeLatter.time;
                 uint256  _totalReward1 = rewardPerMin1 * (_userTimeLatter - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (_userTimeLatter - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userAmount / _farmAount);
-                _reward2 += (_totalReward2 * _userAmount / _farmAount);
+                if(_farmAount > 0){
+                    _reward1 += (_totalReward1 * _userAmount / _farmAount);
+                    _reward2 += (_totalReward2 * _userAmount / _farmAount);
+                }
             }else if(block.timestamp <= endTime && aheadTime == 0){
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (block.timestamp - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (block.timestamp - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userSake / totalStake);
-                _reward2 += (_totalReward2 * _userSake / totalStake);
+                if(totalStake > 0){
+                    _reward1 += (_totalReward1 * _userSake / totalStake);
+                    _reward2 += (_totalReward2 * _userSake / totalStake);
+                }
             }else if(aheadTime > 0 ){
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (aheadTime - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (aheadTime - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userSake / totalStake);
-                _reward2 += (_totalReward2 * _userSake / totalStake);
+                if(totalStake > 0){
+                    _reward1 += (_totalReward1 * _userSake / totalStake);
+                    _reward2 += (_totalReward2 * _userSake / totalStake);
+                }
             }else {
                 uint256  _userSake = userSake[_account];
                 uint256  _totalReward1 = rewardPerMin1 * (endTime - _userTime) / blockTime;
                 uint256  _totalReward2 = rewardPerMin2 * (endTime - _userTime) / blockTime;
-                _reward1 += (_totalReward1 * _userSake / totalStake);
-                _reward2 += (_totalReward2 * _userSake / totalStake);
+                if(totalStake > 0){
+                    _reward1 += (_totalReward1 * _userSake / totalStake);
+                    _reward2 += (_totalReward2 * _userSake / totalStake);
+                }
             }
         }
-        require(_reward1 >= withdrawdReward1[_account], "SoonFarming:_reward1 >= withdrawdReward1");
-        require(_reward2 >= withdrawdReward2[_account], "SoonFarming:_reward2 >= withdrawdReward2");
-        _reward1 -= withdrawdReward1[_account];
-        _reward2 -= withdrawdReward2[_account];
+        if(_reward1 >= withdrawdReward1[_account]){
+            _reward1 -= withdrawdReward1[_account];
+        }
+        if(_reward2 >= withdrawdReward2[_account]){
+            _reward2 -= withdrawdReward2[_account];
+        }
         return(_reward1,_reward2);
     }
 
