@@ -211,6 +211,7 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         FarmStake memory _userFarmStake  = FarmStake(block.timestamp,userSake[msg.sender]);
         userTimeStake[msg.sender].push(_userFarmStake);
         emit StakeEvent(msg.sender,_amount,block.timestamp);
+        claim();
     }
 
     function unStake(uint256 _amount)  public virtual lock returns(uint256,uint256){
@@ -220,8 +221,6 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         require(userSake[_msgSender()] >= _amount, "SoonFarming:userSake >= unStake");
         require(_amount > 0, "SoonFarming:_amount > 0");
         (uint256 _reward1,uint256 _reward2) = _reward(_msgSender());
-        withdrawdReward1[msg.sender] += _reward1;
-        withdrawdReward2[msg.sender] += _reward2;
         userSake[msg.sender] =  (userSake[msg.sender] - _amount);
         totalStake  -= _amount;
         FarmStake memory _farmStake  = FarmStake(block.timestamp,totalStake);
@@ -229,12 +228,7 @@ contract SoonFarming is ISoonFarming,AccessControl,Pausable,Ownable {
         FarmStake memory _userStake  = FarmStake(block.timestamp,userSake[msg.sender]);
         userTimeStake[msg.sender].push(_userStake);
         TransferLib.safeTransfer(stakeToken, msg.sender, _amount);
-        if(_reward1 > 0 ){
-            TransferLib.safeTransfer(address(rewardToken1), msg.sender, _reward1);
-        }
-        if(_reward2 > 0 ){
-            TransferLib.safeTransfer(address(rewardToken2), msg.sender, _reward2);
-        }
+        claim();
         emit UnStakeEvent(msg.sender,_amount,_reward1,_reward2,block.timestamp);
         return (_reward1, _reward2);
     }
